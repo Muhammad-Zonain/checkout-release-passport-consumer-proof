@@ -1,0 +1,106 @@
+{
+  "schema_version": "1.0",
+  "engine": {
+    "name": "checkout-evidence-engine",
+    "version": "0.3.0",
+    "capture_mode": "static",
+    "behavior": "Authorized HTML GET plus passive GETs for script elements declared in that HTML; no JavaScript execution"
+  },
+  "captured_at": "2026-07-20T06:29:05.137Z",
+  "target": {
+    "target_id": "marketplace-consumer-proof",
+    "name": "Marketplace Consumer Proof Fixture",
+    "requested_url": "http://127.0.0.1:4174/checkout.html",
+    "requested_url_sha256": "d73dfe672a44da6b2dcc840dfff67c9a4b1b2eb21f485de466912e37a693867b",
+    "authorization": {
+      "confirmed": true,
+      "confirmed_by": "Repository owner",
+      "confirmed_at": "2026-07-20",
+      "scope_note": "Locally hosted fixture owned and controlled by this proof repository"
+    }
+  },
+  "page": {
+    "final_url": "http://127.0.0.1:4174/checkout.html",
+    "final_url_sha256": "d73dfe672a44da6b2dcc840dfff67c9a4b1b2eb21f485de466912e37a693867b",
+    "title": "Marketplace Consumer Proof",
+    "http_status": 200,
+    "rendered_dom_sha256": "4f45cf70b44168b70086a46e437f528505b1b0612f70e2db984ac888ab07c6b5",
+    "security_headers": {
+      "content-security-policy": "default-src 'self'; script-src 'self'",
+      "content-security-policy-report-only": null,
+      "strict-transport-security": null,
+      "x-content-type-options": "nosniff",
+      "referrer-policy": "no-referrer",
+      "permissions-policy": null,
+      "x-frame-options": "DENY",
+      "cross-origin-opener-policy": null,
+      "cross-origin-embedder-policy": null,
+      "cross-origin-resource-policy": null
+    }
+  },
+  "scripts": [
+    {
+      "dom_index": 0,
+      "kind": "external",
+      "src": "http://127.0.0.1:4174/payment-sdk.js",
+      "src_sha256": "ac06f0bfc8b5f0006dc1a74136908c21e6f528f59dcfbe205ddb123277887544",
+      "origin": "http://127.0.0.1:4174",
+      "first_party": true,
+      "type": "text/javascript",
+      "async": false,
+      "defer": true,
+      "integrity": null,
+      "crossorigin": null,
+      "referrerpolicy": null,
+      "nonce_present": false,
+      "content_sha256": "566dcbc21358f046e8ac436e683fd44e314a3f766d1664f5187bb387fa6e99c2",
+      "content_bytes": 61,
+      "response_status": 200,
+      "response_content_type": "text/javascript; charset=utf-8"
+    },
+    {
+      "dom_index": 1,
+      "kind": "external",
+      "src": "http://127.0.0.1:4174/storefront.js",
+      "src_sha256": "30f930898c724c6d5f0d94ec3edb4ca75602b9656095028c4da19ea5e5ef7b11",
+      "origin": "http://127.0.0.1:4174",
+      "first_party": true,
+      "type": "text/javascript",
+      "async": false,
+      "defer": true,
+      "integrity": null,
+      "crossorigin": null,
+      "referrerpolicy": null,
+      "nonce_present": false,
+      "content_sha256": "10360358d258485b5c9ec4978dc23114a3a62e016a83bbb59d28318ab76a437b",
+      "content_bytes": 82,
+      "response_status": 200,
+      "response_content_type": "text/javascript; charset=utf-8"
+    }
+  ],
+  "network_origins": [
+    {
+      "origin": "http://127.0.0.1:4174",
+      "first_party": true,
+      "request_count": 3,
+      "resource_types": [
+        "document",
+        "script"
+      ]
+    }
+  ],
+  "warnings": [
+    {
+      "code": "STATIC_MODE_LIMITATION",
+      "message": "JavaScript was not executed; runtime-injected scripts and requests are outside this snapshot"
+    }
+  ],
+  "privacy": {
+    "response_bodies_stored": false,
+    "inline_script_content_stored": false,
+    "query_values_stored": false,
+    "cookies_stored": false,
+    "form_values_collected": false
+  },
+  "snapshot_sha256": "e4c003a64a3631b381f1c807aa6a6e5124c6088e3762867723e58f5556743293"
+}

@@ -1,0 +1,91 @@
+name: Marketplace consumer proof
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  released-action-pass:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Start the repository-owned checkout fixture
+        run: |
+          nohup node scripts/server.mjs > /tmp/checkout-release-passport-consumer-proof.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4174/checkout.html >/dev/null; then
+              break
+            fi
+            sleep 0.1
+          done
+          curl --fail --silent http://127.0.0.1:4174/checkout.html >/dev/null
+
+      - name: Run the public Marketplace release
+        id: baseline
+        uses: Muhammad-Zonain/checkout-release-passport@v0.3.0
+        with:
+          operation: baseline
+          config_path: .checkout-evidence/baseline-proof.json
+          ack_authorized: "true"
+          install_browser: "false"
+          artifact_suffix: consumer-baseline
+
+      - name: Require the remote baseline-operation result
+        env:
+          BASELINE_STATUS: ${{ steps.baseline.outputs.status }}
+          BASELINE_PATH: ${{ steps.baseline.outputs.baseline_path }}
+          BASELINE_SNAPSHOT_PATH: ${{ steps.baseline.outputs.snapshot_path }}
+          APPROVAL_TEMPLATE_PATH: ${{ steps.baseline.outputs.approval_template_path }}
+        run: |
+          test "$BASELINE_STATUS" = "BASELINE_CREATED"
+          test -f "$BASELINE_PATH"
+          test -f "$BASELINE_SNAPSHOT_PATH"
+          test -f "$APPROVAL_TEMPLATE_PATH"
+
+      - name: Run the public Marketplace release check
+        id: passport
+        uses: Muhammad-Zonain/checkout-release-passport@v0.3.0
+        with:
+          operation: check
+          config_path: .checkout-evidence/demo.json
+          ack_authorized: "true"
+          install_browser: "false"
+          fail_on_review: "true"
+          artifact_suffix: consumer-check
+
+      - name: Require the expected released-action result
+        env:
+          PASSPORT_STATUS: ${{ steps.passport.outputs.status }}
+          PASSPORT_ID: ${{ steps.passport.outputs.passport_id }}
+          PASSPORT_SHA256: ${{ steps.passport.outputs.passport_sha256 }}
+          PASSPORT_PATH: ${{ steps.passport.outputs.passport_path }}
+          REPORT_PATH: ${{ steps.passport.outputs.report_path }}
+          COMPARISON_PATH: ${{ steps.passport.outputs.comparison_path }}
+          SNAPSHOT_PATH: ${{ steps.passport.outputs.snapshot_path }}
+          EXPECTED_PROVIDER: github-actions
+          EXPECTED_REPOSITORY: ${{ github.repository }}
+          EXPECTED_COMMIT_SHA: ${{ github.sha }}
+          EXPECTED_ACTION_REPOSITORY: Muhammad-Zonain/checkout-release-passport
+          EXPECTED_ACTION_REF: v0.3.0
+          EXPECTED_TARGET_ID: marketplace-consumer-proof
+        run: |
+          test "$PASSPORT_STATUS" = "PASS"
+          test -n "$PASSPORT_ID"
+          test -n "$PASSPORT_SHA256"
+          test -f "$PASSPORT_PATH"
+          test -f "$REPORT_PATH"
+          test -f "$COMPARISON_PATH"
+          test -f "$SNAPSHOT_PATH"
+          node scripts/verify-passport.mjs "$PASSPORT_PATH"
+          echo "Independent Marketplace installation proof: PASS"
+          echo "Passport ID: $PASSPORT_ID"

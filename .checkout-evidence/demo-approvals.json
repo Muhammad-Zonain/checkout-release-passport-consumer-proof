@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "target_id": "marketplace-consumer-proof",
+  "approvals": [
+    {
+      "approval_id": "proof-payment-sdk",
+      "kind": "external",
+      "match_type": "exact",
+      "match": "http://127.0.0.1:4174/payment-sdk.js",
+      "owner": "Consumer proof fixture",
+      "purpose": "Demonstrate an approved payment SDK script",
+      "approved_by": "Repository owner",
+      "approved_at": "2026-07-20",
+      "expires_at": null
+    },
+    {
+      "approval_id": "proof-storefront",
+      "kind": "external",
+      "match_type": "exact",
+      "match": "http://127.0.0.1:4174/storefront.js",
+      "owner": "Consumer proof fixture",
+      "purpose": "Demonstrate an approved storefront script",
+      "approved_by": "Repository owner",
+      "approved_at": "2026-07-20",
+      "expires_at": null
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "target_id": "marketplace-consumer-proof",
+  "name": "Marketplace Consumer Proof Fixture",
+  "url": "http://127.0.0.1:4174/checkout.html",
+  "output_dir": "evidence",
+  "approvals_file": "demo-approvals.json",
+  "authorization": {
+    "confirmed": true,
+    "confirmed_by": "Repository owner",
+    "confirmed_at": "2026-07-20",
+    "scope_note": "Locally hosted fixture owned and controlled by this proof repository",
+    "reference": "PUBLIC-CONSUMER-PROOF-001"
+  },
+  "scan": {
+    "mode": "static",
+    "wait_until": "networkidle",
+    "timeout_ms": 30000,
+    "post_load_wait_ms": 0
+  }
+}

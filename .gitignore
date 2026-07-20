@@ -1,0 +1,6 @@
+.checkout-evidence/evidence/**/scans/
+.checkout-evidence/evidence/**/reports/
+.checkout-evidence/evidence/**/passports/
+.checkout-evidence/evidence/**/approval-template.json
+.checkout-evidence/generated/
+*.log
