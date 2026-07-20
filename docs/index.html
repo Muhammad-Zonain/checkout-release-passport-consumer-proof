@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Client-owned checkout release evidence in GitHub Actions.">
+  <meta name="theme-color" content="#f7f9fc">
+  <title>Checkout Release Passport — Release Evidence for Checkout Changes</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f9fc;
+      --bg-accent: #edf7f6;
+      --surface: #ffffff;
+      --surface-soft: #f1f5f9;
+      --ink: #102033;
+      --muted: #52657a;
+      --line: #d8e1ea;
+      --brand: #0f766e;
+      --brand-dark: #0b5f59;
+      --blue: #1d4ed8;
+      --green: #067647;
+      --amber: #a44708;
+      --amber-bg: #fff7ed;
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, .05);
+      --shadow-md: 0 14px 40px rgba(15, 23, 42, .08);
+      --shadow-lg: 0 28px 80px rgba(15, 118, 110, .12);
+      --max: 1120px;
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 88px;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background:
+        radial-gradient(circle at 92% 0%, rgba(29, 78, 216, .08), transparent 28rem),
+        radial-gradient(circle at 5% 17%, rgba(15, 118, 110, .10), transparent 25rem),
+        linear-gradient(180deg, #fbfcfe 0%, var(--bg) 42%, #ffffff 100%);
+      color: var(--ink);
+      font: 16px/1.65 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: inherit;
+      text-underline-offset: 3px;
+    }
+
+    a:hover {
+      color: var(--brand-dark);
+    }
+
+    a:focus-visible,
+    summary:focus-visible {
+      outline: 3px solid rgba(29, 78, 216, .30);
+      outline-offset: 4px;
+      border-radius: 6px;
+    }
+
+    .skip-link {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 100;
+      transform: translateY(-160%);
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: var(--ink);
+      color: #ffffff;
+      font-weight: 750;
+      text-decoration: none;
+      transition: transform .18s ease;
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+      color: #ffffff;
+    }
+
+    .wrap {
+      width: min(calc(100% - 40px), var(--max));
+      margin: 0 auto;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+      padding: 22px 0;
+      border-bottom: 1px solid rgba(216, 225, 234, .88);
+    }
+
+    .brand {
+      color: var(--ink);
+      font-weight: 800;
+      letter-spacing: -.025em;
+      white-space: nowrap;
+    }
+
+    .brand span {
+      color: var(--brand);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px 20px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .nav-links a {
+      padding: 7px 0;
+      text-decoration: none;
+    }
+
+    .nav-links a:hover {
+      color: var(--ink);
+    }
+
+    .hero {
+      max-width: 930px;
+      padding: 86px 0 58px;
+    }
+
+    .eyebrow {
+      color: var(--brand);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      overflow-wrap: break-word;
+    }
+
+    h1 {
+      max-width: 900px;
+      margin: 15px 0 22px;
+      font-size: clamp(44px, 7.5vw, 78px);
+      line-height: 1.01;
+      letter-spacing: -.055em;
+    }
+
+    .lead {
+      max-width: 790px;
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(18px, 2.4vw, 23px);
+      line-height: 1.58;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    .btn {
+      display: inline-flex;
+      min-height: 50px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 19px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      font-weight: 760;
+      line-height: 1.25;
+      text-align: center;
+      text-decoration: none;
+      transition:
+        transform .18s ease,
+        box-shadow .18s ease,
+        border-color .18s ease,
+        background-color .18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 9px 24px rgba(15, 23, 42, .10);
+    }
+
+    .btn.primary {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #ffffff;
+    }
+
+    .btn.primary:hover {
+      border-color: var(--brand-dark);
+      background: var(--brand-dark);
+      color: #ffffff;
+    }
+
+    .btn.secondary {
+      background: rgba(255, 255, 255, .90);
+      color: var(--ink);
+    }
+
+    .btn.secondary:hover {
+      border-color: #aebdca;
+      background: #ffffff;
+      color: var(--ink);
+    }
+
+    .proof {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 24px 0 78px;
+    }
+
+    .proof div,
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, .94);
+      box-shadow: var(--shadow-md);
+    }
+
+    .proof div {
+      min-height: 108px;
+      padding: 20px;
+    }
+
+    .proof strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--green);
+      font-size: 14px;
+    }
+
+    .proof span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    section {
+      padding: 58px 0;
+    }
+
+    h2 {
+      max-width: 870px;
+      margin: 0 0 14px;
+      font-size: clamp(31px, 5vw, 49px);
+      line-height: 1.1;
+      letter-spacing: -.04em;
+    }
+
+    .section-lead {
+      max-width: 760px;
+      margin: 0 0 29px;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 17px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      padding: 27px;
+    }
+
+    .card h3 {
+      margin: 0 0 9px;
+      font-size: 20px;
+      line-height: 1.3;
+      letter-spacing: -.015em;
+    }
+
+    .card p,
+    .card li {
+      color: var(--muted);
+    }
+
+    .card p {
+      margin: 0;
+    }
+
+    .card ul {
+      margin: 13px 0 0;
+      padding-left: 20px;
+    }
+
+    .card li + li {
+      margin-top: 7px;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 11px;
+      counter-reset: flow;
+    }
+
+    .flow div {
+      position: relative;
+      min-height: 138px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(180deg, #ffffff 0%, var(--surface-soft) 100%);
+      box-shadow: var(--shadow-sm);
+      color: #24384e;
+      font-weight: 680;
+    }
+
+    .flow div::before {
+      display: block;
+      margin-bottom: 22px;
+      color: var(--brand);
+      content: "0" counter(flow);
+      counter-increment: flow;
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .07em;
+    }
+
+    .price {
+      border-color: rgba(15, 118, 110, .48);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .price-tag {
+      margin: 8px 0 15px;
+      color: var(--ink);
+      font-size: 52px;
+      font-weight: 850;
+      letter-spacing: -.05em;
+      line-height: 1.1;
+    }
+
+    .price-tag small {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 650;
+      letter-spacing: 0;
+    }
+
+    .notice {
+      margin-top: 20px;
+      padding: 17px 19px;
+      border: 1px solid #fed7aa;
+      border-left: 4px solid var(--amber);
+      border-radius: 8px;
+      background: var(--amber-bg);
+      color: #7c2d12;
+    }
+
+    details {
+      border-top: 1px solid var(--line);
+      padding: 19px 0;
+    }
+
+    details:last-child {
+      border-bottom: 1px solid var(--line);
+    }
+
+    summary {
+      cursor: pointer;
+      color: var(--ink);
+      font-weight: 760;
+    }
+
+    details[open] summary {
+      color: var(--brand-dark);
+    }
+
+    details p {
+      max-width: 840px;
+      margin: 12px 0 0;
+      color: var(--muted);
+    }
+
+    .cta {
+      margin: 52px 0 72px;
+      padding: 45px;
+      border: 1px solid #c7dfdc;
+      border-radius: var(--radius-lg);
+      background:
+        linear-gradient(135deg, rgba(15, 118, 110, .11), rgba(29, 78, 216, .07)),
+        #ffffff;
+      box-shadow: var(--shadow-lg);
+    }
+
+    footer {
+      padding: 25px 0 46px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    code {
+      color: var(--brand-dark);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-weight: 750;
+    }
+
+    @media (max-width: 940px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .flow {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .flow div:last-child {
+        grid-column: 1 / -1;
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .wrap {
+        width: min(calc(100% - 28px), var(--max));
+      }
+
+      nav {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+        padding: 18px 0;
+      }
+
+      .nav-links {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 2px 16px;
+      }
+
+      .hero {
+        padding: 56px 0 42px;
+      }
+
+      h1 {
+        font-size: clamp(41px, 13vw, 61px);
+      }
+
+      .proof,
+      .grid.two {
+        grid-template-columns: 1fr;
+      }
+
+      .proof {
+        margin-bottom: 54px;
+      }
+
+      section {
+        padding: 46px 0;
+      }
+
+      .cta {
+        margin: 40px 0 56px;
+        padding: 29px;
+      }
+    }
+
+    @media (max-width: 540px) {
+      .flow {
+        grid-template-columns: 1fr;
+      }
+
+      .flow div,
+      .flow div:last-child {
+        grid-column: auto;
+        min-height: auto;
+      }
+
+      .actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .card {
+        padding: 23px;
+      }
+
+      .price-tag small {
+        display: block;
+        margin-top: 7px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <div class="wrap">
+    <nav aria-label="Primary navigation">
+      <div class="brand">Checkout Release <span>Passport</span></div>
+      <div class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="#installation">Installation</a>
+        <a href="#faq">FAQ</a>
+      </div>
+    </nav>
+
+    <main id="main-content">
+      <header class="hero">
+        <div class="eyebrow">GitHub-native checkout release evidence</div>
+        <h1>Make every checkout release explain itself.</h1>
+        <p class="lead">Before deployment, record browser-observed script and security-header changes, compare them with an approved baseline, and export client-owned evidence from GitHub Actions.</p>
+        <div class="actions">
+          <a class="btn primary" href="#installation">View the founding installation</a>
+          <a class="btn secondary" href="https://github.com/marketplace/actions/checkout-release-passport">View Marketplace Action</a>
+          <a class="btn secondary" href="https://github.com/Muhammad-Zonain/checkout-release-passport-consumer-proof">Inspect independent proof</a>
+        </div>
+      </header>
+
+      <div class="proof" aria-label="Public proof">
+        <div><strong>Public release</strong><span>GitHub Marketplace + v0.3.0</span></div>
+        <div><strong>Independent run</strong><span>Consumer repository workflow passed</span></div>
+        <div><strong>Client-owned output</strong><span>JSON passport, comparison and HTML report</span></div>
+      </div>
+
+      <section id="how">
+        <div class="eyebrow">The release record Git diff cannot provide</div>
+        <h2>Observe the checkout the browser actually receives.</h2>
+        <p class="section-lead">A source-code diff can show which files changed. It does not necessarily show which scripts and selected security headers reached the checkout, whether they matched an approved baseline, or where the release evidence lives.</p>
+        <div class="flow">
+          <div>Authorized staging checkout</div>
+          <div>Browser observation</div>
+          <div>Approved baseline comparison</div>
+          <div>Named approval and justification</div>
+          <div><code>PASS</code> or <code>REVIEW_REQUIRED</code> passport</div>
+        </div>
+      </section>
+
+      <section>
+        <div class="grid">
+          <article class="card">
+            <h3>Detect release drift</h3>
+            <p>Added, removed, or changed external scripts; inline-script fingerprint changes; selected security-header changes; and approval or justification drift.</p>
+          </article>
+          <article class="card">
+            <h3>Preserve evidence</h3>
+            <p>The workflow uploads the passport, comparison, and readable report before enforcing a review-required gate.</p>
+          </article>
+          <article class="card">
+            <h3>Keep data boundaries tight</h3>
+            <p>No form submission. No cardholder data, cookies, form values, URL query values, response bodies, or full script source bodies retained.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="installation">
+        <div class="eyebrow">First three agency installations</div>
+        <h2>A working release-evidence gate, not a consulting deck.</h2>
+        <div class="grid two">
+          <article class="card price">
+            <h3>Founding Installation</h3>
+            <div class="price-tag">$750 <small>USD · fixed scope</small></div>
+            <ul>
+              <li>One authorized staging checkout</li>
+              <li>One GitHub repository and workflow</li>
+              <li>Approved baseline and justification template</li>
+              <li>Reproducible PASS and safe REVIEW_REQUIRED test</li>
+              <li>Downloadable evidence and passport verification</li>
+              <li>Handover plus 14 days setup support</li>
+            </ul>
+            <div class="notice"><strong>No working acceptance proof, no fee.</strong> Invoice is issued only after the agreed test works in the authorized repository.</div>
+          </article>
+          <article class="card">
+            <h3>Best fit</h3>
+            <ul>
+              <li>BigCommerce custom checkout or Checkout SDK</li>
+              <li>Adobe Commerce / Magento</li>
+              <li>Salesforce Commerce Cloud</li>
+              <li>WooCommerce or custom Node/React/Next.js checkout</li>
+              <li>Merchant-controlled payment pages with GitHub Actions</li>
+            </ul>
+            <h3 style="margin-top:26px">Not a fit</h3>
+            <ul>
+              <li>Unauthorized scanning</li>
+              <li>Fully hosted checkout with no relevant control</li>
+              <li>A request for PCI certification or a penetration test</li>
+              <li>A replacement for continuous production monitoring</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="faq">
+        <div class="eyebrow">Clear boundaries</div>
+        <h2>Questions technical teams ask.</h2>
+        <details>
+          <summary>Does this certify PCI DSS compliance?</summary>
+          <p>No. Checkout Release Passport supports release-time evidence collection and change review. PCI applicability and compliance decisions remain with the merchant and its qualified assessor.</p>
+        </details>
+        <details>
+          <summary>Does it replace Cloudflare, Jscrambler, Source Defense, or another runtime tool?</summary>
+          <p>No. It is a release-control artifact inside GitHub Actions and can complement continuous client-side monitoring.</p>
+        </details>
+        <details>
+          <summary>Why is this different from a Git diff?</summary>
+          <p>A Git diff describes source changes. The passport records browser-observed script fingerprints, selected headers, baseline comparison, approval status, and workflow provenance for an authorized checkout.</p>
+        </details>
+        <details>
+          <summary>Will you receive payment or customer data?</summary>
+          <p>No form submission is required, and the evidence format intentionally excludes cardholder data, credentials, cookies, form values, query values, response bodies, and complete script bodies.</p>
+        </details>
+      </section>
+
+      <section class="cta">
+        <div class="eyebrow">Request a scope check</div>
+        <h2>See whether your checkout is a real fit before spending anything.</h2>
+        <p class="section-lead">Open a public request with only non-sensitive architecture details. Do not include credentials, secrets, private URLs, customer data, or card data.</p>
+        <div class="actions">
+          <a class="btn primary" href="https://github.com/Muhammad-Zonain/checkout-release-passport/issues/new?title=Founding%20Installation%20scope%20check&amp;body=Platform%3A%20%0ACheckout%20ownership%20%28merchant-controlled%20%2F%20hosted%20%2F%20unsure%29%3A%20%0AGitHub%20Actions%20%28yes%20%2F%20no%29%3A%20%0ATarget%20month%3A%20%0A%0ADo%20not%20include%20credentials%2C%20secrets%2C%20private%20URLs%2C%20customer%20data%2C%20or%20card%20data.">Request a scope check on GitHub</a>
+          <a class="btn secondary" href="https://github.com/Muhammad-Zonain/checkout-release-passport-consumer-proof/actions/runs/29731150046">View the green consumer run</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      Maintained by Muhammad Zonain. Checkout Release Passport is an evidence collector, not PCI certification, a QSA assessment, a penetration test, legal advice, complete attack prevention, or a replacement for appropriately scoped continuous monitoring.
+    </footer>
+  </div>
+</body>
+</html>
