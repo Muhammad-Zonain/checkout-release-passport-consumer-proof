@@ -1,4 +1,4 @@
-name: Marketplace consumer proof
+name: Separate-repository installation proof — static demo
 
 on:
   push:
@@ -12,6 +12,7 @@ jobs:
   released-action-pass:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
     steps:
       - uses: actions/checkout@v6
 
@@ -22,12 +23,15 @@ jobs:
       - name: Start the repository-owned checkout fixture
         run: |
           nohup node scripts/server.mjs > /tmp/checkout-release-passport-consumer-proof.log 2>&1 &
+
           for attempt in {1..30}; do
             if curl --fail --silent http://127.0.0.1:4174/checkout.html >/dev/null; then
               break
             fi
+
             sleep 0.1
           done
+
           curl --fail --silent http://127.0.0.1:4174/checkout.html >/dev/null
 
       - name: Run the public Marketplace release
@@ -86,6 +90,26 @@ jobs:
           test -f "$REPORT_PATH"
           test -f "$COMPARISON_PATH"
           test -f "$SNAPSHOT_PATH"
+
           node scripts/verify-passport.mjs "$PASSPORT_PATH"
-          echo "Independent Marketplace installation proof: PASS"
+
+          echo "Separate-Repository Installation Proof — Static Demo: PASS"
           echo "Passport ID: $PASSPORT_ID"
+
+          {
+            echo "## Separate-Repository Installation Proof — Static Demo"
+            echo ""
+            echo "**Decision:** PASS"
+            echo ""
+            echo "**Capture mode:** Static"
+            echo ""
+            echo "**Passport ID:** \`$PASSPORT_ID\`"
+            echo ""
+            echo "**Passport SHA-256:** \`$PASSPORT_SHA256\`"
+            echo ""
+            echo "This repository is maintained by the creator of Checkout Release Passport."
+            echo ""
+            echo "It demonstrates cross-repository installation and a static-mode fixture acceptance sequence."
+            echo ""
+            echo "It is not an independent audit, external customer validation, certification, or third-party endorsement."
+          } >> "$GITHUB_STEP_SUMMARY"
