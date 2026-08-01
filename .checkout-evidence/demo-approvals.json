@@ -10,7 +10,7 @@
       "owner": "Consumer proof fixture",
       "purpose": "Demonstrate an approved payment SDK script",
       "approved_by": "Repository owner",
-      "approved_at": "2026-07-20",
+      "approved_at": "2026-08-01",
       "expires_at": null
     },
     {
@@ -21,7 +21,7 @@
       "owner": "Consumer proof fixture",
       "purpose": "Demonstrate an approved storefront script",
       "approved_by": "Repository owner",
-      "approved_at": "2026-07-20",
+      "approved_at": "2026-08-01",
       "expires_at": null
     }
   ]
