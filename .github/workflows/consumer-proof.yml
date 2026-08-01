@@ -1,8 +1,6 @@
 name: Separate-repository installation proof — static demo
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
