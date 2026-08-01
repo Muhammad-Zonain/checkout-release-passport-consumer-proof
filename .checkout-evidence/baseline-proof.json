@@ -12,9 +12,9 @@
     "reference": "PUBLIC-BASELINE-PROOF-001"
   },
   "scan": {
-    "mode": "static",
+    "mode": "browser",
     "wait_until": "networkidle",
     "timeout_ms": 30000,
-    "post_load_wait_ms": 0
+    "post_load_wait_ms": 250
   }
 }
