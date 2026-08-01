@@ -3,10 +3,10 @@
   "engine": {
     "name": "checkout-evidence-engine",
     "version": "0.3.0",
-    "capture_mode": "static",
-    "behavior": "Authorized HTML GET plus passive GETs for script elements declared in that HTML; no JavaScript execution"
+    "capture_mode": "browser",
+    "behavior": "GET navigation and passive resource observation only"
   },
-  "captured_at": "2026-07-20T06:29:05.137Z",
+  "captured_at": "2026-08-01T06:54:54.075Z",
   "target": {
     "target_id": "marketplace-consumer-proof",
     "name": "Marketplace Consumer Proof Fixture",
@@ -24,7 +24,7 @@
     "final_url_sha256": "d73dfe672a44da6b2dcc840dfff67c9a4b1b2eb21f485de466912e37a693867b",
     "title": "Marketplace Consumer Proof",
     "http_status": 200,
-    "rendered_dom_sha256": "4f45cf70b44168b70086a46e437f528505b1b0612f70e2db984ac888ab07c6b5",
+    "rendered_dom_sha256": "2eb7b4256c150f840353f421035a1fa11c73383286537f68822d56ec6b8e46f0",
     "security_headers": {
       "content-security-policy": "default-src 'self'; script-src 'self'",
       "content-security-policy-report-only": null,
@@ -89,12 +89,7 @@
       ]
     }
   ],
-  "warnings": [
-    {
-      "code": "STATIC_MODE_LIMITATION",
-      "message": "JavaScript was not executed; runtime-injected scripts and requests are outside this snapshot"
-    }
-  ],
+  "warnings": [],
   "privacy": {
     "response_bodies_stored": false,
     "inline_script_content_stored": false,
@@ -102,5 +97,5 @@
     "cookies_stored": false,
     "form_values_collected": false
   },
-  "snapshot_sha256": "e4c003a64a3631b381f1c807aa6a6e5124c6088e3762867723e58f5556743293"
+  "snapshot_sha256": "972ffdbf2ea53e5096f90ce3476a2cdd94f7c48dd4d3ee4257946a38649446f2"
 }
