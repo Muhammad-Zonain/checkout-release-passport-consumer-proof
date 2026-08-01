@@ -1,15 +1,17 @@
-name: Separate-repository installation proof — static demo
+name: Separate-repository browser acceptance demo
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  released-action-pass:
+  browser-acceptance:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v6
@@ -18,44 +20,132 @@ jobs:
         with:
           node-version: 22
 
-      - name: Start the repository-owned checkout fixture
+      - name: Start repository-owned checkout fixture
         run: |
-          nohup node scripts/server.mjs > /tmp/checkout-release-passport-consumer-proof.log 2>&1 &
+          nohup node scripts/server.mjs > /tmp/checkout-browser-proof.log 2>&1 &
 
           for attempt in {1..30}; do
             if curl --fail --silent http://127.0.0.1:4174/checkout.html >/dev/null; then
               break
             fi
-
-            sleep 0.1
+            sleep 0.2
           done
 
           curl --fail --silent http://127.0.0.1:4174/checkout.html >/dev/null
 
-      - name: Run the public Marketplace release
-        id: baseline
+      - name: Unchanged checkout must pass
+        id: unchanged
         uses: Muhammad-Zonain/checkout-release-passport@v0.3.0
         with:
-          operation: baseline
-          config_path: .checkout-evidence/baseline-proof.json
+          operation: check
+          config_path: .checkout-evidence/demo.json
+          ack_authorized: "true"
+          install_browser: "true"
+          fail_on_review: "true"
+          artifact_suffix: browser-unchanged
+
+      - name: Require unchanged PASS
+        env:
+          STATUS: ${{ steps.unchanged.outputs.status }}
+          PASSPORT_PATH: ${{ steps.unchanged.outputs.passport_path }}
+          PASSPORT_SHA256: ${{ steps.unchanged.outputs.passport_sha256 }}
+          SNAPSHOT_PATH: ${{ steps.unchanged.outputs.snapshot_path }}
+          COMPARISON_PATH: ${{ steps.unchanged.outputs.comparison_path }}
+          REPORT_PATH: ${{ steps.unchanged.outputs.report_path }}
+          EXPECTED_PROVIDER: github-actions
+          EXPECTED_REPOSITORY: ${{ github.repository }}
+          EXPECTED_COMMIT_SHA: ${{ github.sha }}
+          EXPECTED_ACTION_REPOSITORY: Muhammad-Zonain/checkout-release-passport
+          EXPECTED_ACTION_REF: v0.3.0
+          EXPECTED_TARGET_ID: marketplace-consumer-proof
+          EXPECTED_CAPTURE_MODE: browser
+        run: |
+          test "$STATUS" = "PASS"
+          test -f "$PASSPORT_PATH"
+          test -f "$SNAPSHOT_PATH"
+          test -f "$COMPARISON_PATH"
+          test -f "$REPORT_PATH"
+
+          node scripts/verify-passport.mjs "$PASSPORT_PATH" PASS
+
+      - name: Add harmless controlled script change
+        run: |
+          printf '\nwindow.__checkoutReleaseProofChange = true;\n' >> site/storefront.js
+
+      - name: Controlled change must require review
+        id: changed
+        uses: Muhammad-Zonain/checkout-release-passport@v0.3.0
+        with:
+          operation: check
+          config_path: .checkout-evidence/demo.json
           ack_authorized: "true"
           install_browser: "false"
-          artifact_suffix: consumer-baseline
+          fail_on_review: "false"
+          artifact_suffix: browser-controlled-change
 
-      - name: Require the remote baseline-operation result
+      - name: Require controlled-change REVIEW_REQUIRED
         env:
-          BASELINE_STATUS: ${{ steps.baseline.outputs.status }}
-          BASELINE_PATH: ${{ steps.baseline.outputs.baseline_path }}
-          BASELINE_SNAPSHOT_PATH: ${{ steps.baseline.outputs.snapshot_path }}
-          APPROVAL_TEMPLATE_PATH: ${{ steps.baseline.outputs.approval_template_path }}
+          STATUS: ${{ steps.changed.outputs.status }}
+          PASSPORT_PATH: ${{ steps.changed.outputs.passport_path }}
+          PASSPORT_SHA256: ${{ steps.changed.outputs.passport_sha256 }}
+          SNAPSHOT_PATH: ${{ steps.changed.outputs.snapshot_path }}
+          COMPARISON_PATH: ${{ steps.changed.outputs.comparison_path }}
+          REPORT_PATH: ${{ steps.changed.outputs.report_path }}
+          EXPECTED_PROVIDER: github-actions
+          EXPECTED_REPOSITORY: ${{ github.repository }}
+          EXPECTED_COMMIT_SHA: ${{ github.sha }}
+          EXPECTED_ACTION_REPOSITORY: Muhammad-Zonain/checkout-release-passport
+          EXPECTED_ACTION_REF: v0.3.0
+          EXPECTED_TARGET_ID: marketplace-consumer-proof
+          EXPECTED_CAPTURE_MODE: browser
         run: |
-          test "$BASELINE_STATUS" = "BASELINE_CREATED"
-          test -f "$BASELINE_PATH"
-          test -f "$BASELINE_SNAPSHOT_PATH"
-          test -f "$APPROVAL_TEMPLATE_PATH"
+          test "$STATUS" = "REVIEW_REQUIRED"
+          test -f "$PASSPORT_PATH"
+          test -f "$SNAPSHOT_PATH"
+          test -f "$COMPARISON_PATH"
+          test -f "$REPORT_PATH"
 
-      - name: Run the public Marketplace release check
-        id: passport
+          node scripts/verify-passport.mjs "$PASSPORT_PATH" REVIEW_REQUIRED
+
+          node <<'NODE'
+          const fs = require("fs");
+
+          const comparison = JSON.parse(
+            fs.readFileSync(process.env.COMPARISON_PATH, "utf8")
+          );
+
+          if (!comparison.review_reasons.includes("scripts_modified")) {
+            throw new Error(
+              "Expected scripts_modified review reason"
+            );
+          }
+
+          if (comparison.summary.scripts_modified !== 1) {
+            throw new Error(
+              `Expected one modified script, received ${comparison.summary.scripts_modified}`
+            );
+          }
+
+          if (
+            comparison.summary.scripts_added !== 0 ||
+            comparison.summary.scripts_removed !== 0
+          ) {
+            throw new Error(
+              "Controlled change unexpectedly added or removed a script"
+            );
+          }
+
+          console.log(
+            "Verified that the controlled storefront change caused REVIEW_REQUIRED"
+          );
+          NODE
+
+      - name: Restore original fixture
+        run: |
+          git restore --source=HEAD -- site/storefront.js
+
+      - name: Rollback must pass
+        id: rollback
         uses: Muhammad-Zonain/checkout-release-passport@v0.3.0
         with:
           operation: check
@@ -63,51 +153,50 @@ jobs:
           ack_authorized: "true"
           install_browser: "false"
           fail_on_review: "true"
-          artifact_suffix: consumer-check
+          artifact_suffix: browser-rollback
 
-      - name: Require the expected released-action result
+      - name: Require rollback PASS
         env:
-          PASSPORT_STATUS: ${{ steps.passport.outputs.status }}
-          PASSPORT_ID: ${{ steps.passport.outputs.passport_id }}
-          PASSPORT_SHA256: ${{ steps.passport.outputs.passport_sha256 }}
-          PASSPORT_PATH: ${{ steps.passport.outputs.passport_path }}
-          REPORT_PATH: ${{ steps.passport.outputs.report_path }}
-          COMPARISON_PATH: ${{ steps.passport.outputs.comparison_path }}
-          SNAPSHOT_PATH: ${{ steps.passport.outputs.snapshot_path }}
+          STATUS: ${{ steps.rollback.outputs.status }}
+          PASSPORT_PATH: ${{ steps.rollback.outputs.passport_path }}
+          PASSPORT_SHA256: ${{ steps.rollback.outputs.passport_sha256 }}
+          SNAPSHOT_PATH: ${{ steps.rollback.outputs.snapshot_path }}
+          COMPARISON_PATH: ${{ steps.rollback.outputs.comparison_path }}
+          REPORT_PATH: ${{ steps.rollback.outputs.report_path }}
           EXPECTED_PROVIDER: github-actions
           EXPECTED_REPOSITORY: ${{ github.repository }}
           EXPECTED_COMMIT_SHA: ${{ github.sha }}
           EXPECTED_ACTION_REPOSITORY: Muhammad-Zonain/checkout-release-passport
           EXPECTED_ACTION_REF: v0.3.0
           EXPECTED_TARGET_ID: marketplace-consumer-proof
+          EXPECTED_CAPTURE_MODE: browser
         run: |
-          test "$PASSPORT_STATUS" = "PASS"
-          test -n "$PASSPORT_ID"
-          test -n "$PASSPORT_SHA256"
+          test "$STATUS" = "PASS"
           test -f "$PASSPORT_PATH"
-          test -f "$REPORT_PATH"
-          test -f "$COMPARISON_PATH"
           test -f "$SNAPSHOT_PATH"
+          test -f "$COMPARISON_PATH"
+          test -f "$REPORT_PATH"
 
-          node scripts/verify-passport.mjs "$PASSPORT_PATH"
+          node scripts/verify-passport.mjs "$PASSPORT_PATH" PASS
 
-          echo "Separate-Repository Installation Proof — Static Demo: PASS"
-          echo "Passport ID: $PASSPORT_ID"
+      - name: Publish acceptance summary
+        run: |
+          echo "Unchanged checkout: ${{ steps.unchanged.outputs.status }}"
+          echo "Controlled script change: ${{ steps.changed.outputs.status }}"
+          echo "Rollback: ${{ steps.rollback.outputs.status }}"
 
           {
-            echo "## Separate-Repository Installation Proof — Static Demo"
-            echo ""
-            echo "**Decision:** PASS"
-            echo ""
-            echo "**Capture mode:** Static"
-            echo ""
-            echo "**Passport ID:** \`$PASSPORT_ID\`"
-            echo ""
-            echo "**Passport SHA-256:** \`$PASSPORT_SHA256\`"
-            echo ""
+            echo "## Separate-Repository Browser Acceptance Demo"
+            echo
+            echo "| State | Expected | Actual |"
+            echo "|---|---|---|"
+            echo "| Unchanged checkout | PASS | ${{ steps.unchanged.outputs.status }} |"
+            echo "| Controlled script change | REVIEW_REQUIRED | ${{ steps.changed.outputs.status }} |"
+            echo "| Rollback | PASS | ${{ steps.rollback.outputs.status }} |"
+            echo
             echo "This repository is maintained by the creator of Checkout Release Passport."
-            echo ""
-            echo "It demonstrates cross-repository installation and a static-mode fixture acceptance sequence."
-            echo ""
+            echo
+            echo "It demonstrates cross-repository installation and a browser-mode fixture acceptance sequence."
+            echo
             echo "It is not an independent audit, external customer validation, certification, or third-party endorsement."
           } >> "$GITHUB_STEP_SUMMARY"
