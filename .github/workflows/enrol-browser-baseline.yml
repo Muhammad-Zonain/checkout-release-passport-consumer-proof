@@ -1,0 +1,92 @@
+name: Enrol browser baseline
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  enrol-browser-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Start repository-owned checkout fixture
+        run: |
+          nohup node scripts/server.mjs > /tmp/checkout-browser-baseline.log 2>&1 &
+
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4174/checkout.html >/dev/null; then
+              break
+            fi
+            sleep 0.2
+          done
+
+          curl --fail --silent http://127.0.0.1:4174/checkout.html >/dev/null
+
+      - name: Generate browser baseline
+        id: baseline
+        uses: Muhammad-Zonain/checkout-release-passport@v0.3.0
+        with:
+          operation: baseline
+          force_baseline: "true"
+          config_path: .checkout-evidence/demo.json
+          ack_authorized: "true"
+          install_browser: "true"
+          artifact_suffix: browser-enrolment
+
+      - name: Verify browser baseline
+        env:
+          STATUS: ${{ steps.baseline.outputs.status }}
+          BASELINE_PATH: ${{ steps.baseline.outputs.baseline_path }}
+        run: |
+          test "$STATUS" = "BASELINE_CREATED"
+          test -f "$BASELINE_PATH"
+
+          node <<'NODE'
+          const fs = require("fs");
+
+          const baseline = JSON.parse(
+            fs.readFileSync(process.env.BASELINE_PATH, "utf8")
+          );
+
+          if (baseline.engine?.capture_mode !== "browser") {
+            throw new Error("Expected browser capture mode");
+          }
+
+          if (baseline.target?.target_id !== "marketplace-consumer-proof") {
+            throw new Error("Unexpected target ID");
+          }
+
+          const expectedScripts = new Set([
+            "http://127.0.0.1:4174/payment-sdk.js",
+            "http://127.0.0.1:4174/storefront.js"
+          ]);
+
+          if (!Array.isArray(baseline.scripts) || baseline.scripts.length !== 2) {
+            throw new Error("Expected exactly two observed scripts");
+          }
+
+          for (const script of baseline.scripts) {
+            if (!expectedScripts.has(script.src)) {
+              throw new Error(`Unexpected script: ${script.src}`);
+            }
+
+            if (script.response_status !== 200) {
+              throw new Error(`Script did not return HTTP 200: ${script.src}`);
+            }
+
+            if (!script.content_sha256) {
+              throw new Error(`Missing script fingerprint: ${script.src}`);
+            }
+          }
+
+          console.log("Verified browser baseline and both expected scripts");
+          NODE
