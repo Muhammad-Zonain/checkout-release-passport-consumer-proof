@@ -35,7 +35,7 @@ jobs:
 
       - name: Unchanged checkout must pass
         id: unchanged
-        uses: Muhammad-Zonain/checkout-release-passport@663ad7f537bc12283aca842b491b9e3630736e2e # v0.3.1 candidate
+        uses: Muhammad-Zonain/checkout-release-passport@4cf7cf45a39bbdca6891be60b96a7590a8d61d31 # v0.3.1 candidate
         with:
           operation: check
           config_path: .checkout-evidence/demo.json
@@ -56,7 +56,7 @@ jobs:
           EXPECTED_REPOSITORY: ${{ github.repository }}
           EXPECTED_COMMIT_SHA: ${{ github.sha }}
           EXPECTED_ACTION_REPOSITORY: Muhammad-Zonain/checkout-release-passport
-          EXPECTED_ACTION_REF: 663ad7f537bc12283aca842b491b9e3630736e2e
+          EXPECTED_ACTION_REF: 4cf7cf45a39bbdca6891be60b96a7590a8d61d31
           EXPECTED_TARGET_ID: marketplace-consumer-proof
           EXPECTED_CAPTURE_MODE: browser
         run: |
@@ -74,7 +74,7 @@ jobs:
 
       - name: Controlled change must require review
         id: changed
-        uses: Muhammad-Zonain/checkout-release-passport@663ad7f537bc12283aca842b491b9e3630736e2e # v0.3.1 candidate
+        uses: Muhammad-Zonain/checkout-release-passport@4cf7cf45a39bbdca6891be60b96a7590a8d61d31 # v0.3.1 candidate
 
         with:
           operation: check
@@ -96,7 +96,7 @@ jobs:
           EXPECTED_REPOSITORY: ${{ github.repository }}
           EXPECTED_COMMIT_SHA: ${{ github.sha }}
           EXPECTED_ACTION_REPOSITORY: Muhammad-Zonain/checkout-release-passport
-          EXPECTED_ACTION_REF: 663ad7f537bc12283aca842b491b9e3630736e2e
+          EXPECTED_ACTION_REF: 4cf7cf45a39bbdca6891be60b96a7590a8d61d31
           EXPECTED_TARGET_ID: marketplace-consumer-proof
           EXPECTED_CAPTURE_MODE: browser
         run: |
@@ -147,7 +147,7 @@ jobs:
 
       - name: Rollback must pass
         id: rollback
-        uses: Muhammad-Zonain/checkout-release-passport@663ad7f537bc12283aca842b491b9e3630736e2e # v0.3.1 candidate
+        uses: Muhammad-Zonain/checkout-release-passport@4cf7cf45a39bbdca6891be60b96a7590a8d61d31 # v0.3.1 candidate
 
         with:
           operation: check
@@ -169,7 +169,7 @@ jobs:
           EXPECTED_REPOSITORY: ${{ github.repository }}
           EXPECTED_COMMIT_SHA: ${{ github.sha }}
           EXPECTED_ACTION_REPOSITORY: Muhammad-Zonain/checkout-release-passport
-          EXPECTED_ACTION_REF: 663ad7f537bc12283aca842b491b9e3630736e2e
+          EXPECTED_ACTION_REF: 4cf7cf45a39bbdca6891be60b96a7590a8d61d31
           EXPECTED_TARGET_ID: marketplace-consumer-proof
           EXPECTED_CAPTURE_MODE: browser
         run: |
