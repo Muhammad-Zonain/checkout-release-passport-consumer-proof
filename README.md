@@ -1,69 +1,58 @@
-# Checkout Release Passport — Separate-Repository Installation Proof — Static Demo
+ # Checkout Release Passport — Separate-Repository Browser Acceptance Demo
 
-[![Separate-repository static demo](https://github.com/Muhammad-Zonain/checkout-release-passport-consumer-proof/actions/workflows/consumer-proof.yml/badge.svg)](https://github.com/Muhammad-Zonain/checkout-release-passport-consumer-proof/actions/workflows/consumer-proof.yml)
+[![Separate-repository browser acceptance demo](https://github.com/Muhammad-Zonain/checkout-release-passport-consumer-proof/actions/workflows/consumer-proof.yml/badge.svg)](https://github.com/Muhammad-Zonain/checkout-release-passport-consumer-proof/actions/workflows/consumer-proof.yml)
 
 This repository is maintained by the creator of Checkout Release Passport.
 
-It demonstrates that a separate caller repository can resolve and run the public Action release referenced by the GitHub Marketplace listing:
+It demonstrates that a separate caller repository can run the published
+Checkout Release Passport v0.3.1 Action in browser capture mode.
+
+## Verified acceptance sequence
+
+The repository-owned checkout fixture is tested in three controlled states:
+
+- Unchanged checkout → `PASS`
+- Harmless controlled script change → `REVIEW_REQUIRED`
+- Restored checkout → `PASS`
+
+The workflow verifies that every generated passport reports browser capture
+mode and checks the caller repository, Action provenance, expected decision,
+and canonical passport digest.
+
+## Immutable Action reference
 
 ```yaml
-uses: Muhammad-Zonain/checkout-release-passport@v0.3.0
+uses: Muhammad-Zonain/checkout-release-passport@4cf7cf45a39bbdca6891be60b96a7590a8d61d31 # v0.3.1
 ```
 
-The current workflow uses a harmless, repository-owned checkout fixture in **static capture mode**. It invokes the released Action and requires a `PASS` result.
+## Latest verified run
 
-It does not collect payment data, submit a checkout form, or contact a third-party checkout.
+[View the successful browser acceptance run](https://github.com/Muhammad-Zonain/checkout-release-passport-consumer-proof/actions/runs/30803025860)
 
-## What a green run demonstrates
+The run produces separate evidence artifacts for:
 
-- GitHub can resolve the public `v0.3.0` Action tag.
-- The released Action can run from a separate caller repository.
-- The Action can create a one-time onboarding baseline in the caller repository.
-- The Action installs its required Node.js dependencies in the caller repository.
-- The caller repository's approved baseline can be compared with a current static observation.
-- The Action returns `PASS`.
-- The workflow uploads the generated passport, comparison, snapshot, and HTML report.
-- The repository's verification script recomputes the passport digest and checks caller and Action provenance.
+- Unchanged checkout
+- Controlled script change
+- Rollback
 
-## Current scope
+Each artifact contains the release passport, comparison, snapshot, and
+readable HTML report.
 
-This is a **static-mode installation demo**.
+## Scope
 
-The current configuration uses:
-
-```json
-{
-  "mode": "static"
-}
-```
-
-The workflow uses:
-
-```yaml
-install_browser: "false"
-```
-
-It must not be described as a browser acceptance demo until a browser-mode workflow has completed successfully.
-
-## Run it
-
-Open:
-
-**Actions → Separate-repository installation proof — static demo → Run workflow**
-
-The expected result is a green workflow run containing:
-
-```text
-Decision: PASS
-Capture mode: Static
-```
+The fixture is harmless and repository-owned. It does not submit a checkout
+form, collect payment data, attempt authentication, or inspect a third-party
+checkout.
 
 ## Disclosure
 
 This repository is maintained by the creator of Checkout Release Passport.
 
-It demonstrates cross-repository installation and a static-mode fixture acceptance sequence.
+It demonstrates cross-repository installation and a browser-mode fixture
+acceptance sequence.
 
-It is not an independent audit, external customer validation, certification, or third-party endorsement.
+It is not an independent audit, external customer validation, certification,
+PCI DSS assessment, or third-party endorsement.
 
-This repository does not demonstrate PCI DSS compliance, production security, complete attack prevention, or continuous production monitoring.
+It does not demonstrate production security, complete attack prevention, or
+continuous production monitoring.
