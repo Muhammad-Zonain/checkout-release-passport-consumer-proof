@@ -25,9 +25,12 @@ and canonical passport digest.
 uses: Muhammad-Zonain/checkout-release-passport@4cf7cf45a39bbdca6891be60b96a7590a8d61d31 # v0.3.1
 ```
 
-## Latest verified run
+## Preserved browser acceptance evidence
 
-[View the successful browser acceptance run](https://github.com/Muhammad-Zonain/checkout-release-passport-consumer-proof/actions/runs/30803025860)
+[View the preserved evidence release](https://github.com/Muhammad-Zonain/checkout-release-passport-consumer-proof/releases/tag/browser-acceptance-2026-08-03)
+
+Source workflow run:
+[30810163186](https://github.com/Muhammad-Zonain/checkout-release-passport-consumer-proof/actions/runs/30810163186)
 
 The run produces separate evidence artifacts for:
 
