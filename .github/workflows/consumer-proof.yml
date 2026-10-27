@@ -3,6 +3,7 @@ name: Separate-repository browser acceptance demo
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -14,11 +15,14 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: 22
+          package-manager-cache: false
 
       - name: Start repository-owned checkout fixture
         run: |
@@ -33,16 +37,37 @@ jobs:
 
           curl --fail --silent http://127.0.0.1:4174/checkout.html >/dev/null
 
+      # This repository is a deterministic product fixture, not a production
+      # onboarding pattern. Production teams must review and commit a baseline
+      # separately rather than regenerating it before every check.
+      - name: Create v0.4.1 browser baseline for the controlled fixture
+        id: baseline
+        # Unpublished v0.4.1 candidate; push this Action commit before running.
+        uses: Muhammad-Zonain/checkout-release-passport@5e4e634f443fd433b1dc1a7f6fba369fbe3e4f05
+        with:
+          operation: baseline
+          force_baseline: "true"
+          config_path: .checkout-evidence/demo.json
+          ack_authorized: "true"
+          install_browser: "true"
+          artifact_suffix: browser-v04-baseline
+          retention_days: "90"
+
+      - name: Require v0.4 baseline creation
+        run: test "${{ steps.baseline.outputs.status }}" = "BASELINE_CREATED"
+
       - name: Unchanged checkout must pass
         id: unchanged
-        uses: Muhammad-Zonain/checkout-release-passport@4cf7cf45a39bbdca6891be60b96a7590a8d61d31 # v0.3.1 candidate
+        # Unpublished v0.4.1 candidate; push this Action commit before running.
+        uses: Muhammad-Zonain/checkout-release-passport@5e4e634f443fd433b1dc1a7f6fba369fbe3e4f05
         with:
           operation: check
           config_path: .checkout-evidence/demo.json
           ack_authorized: "true"
-          install_browser: "true"
+          install_browser: "false"
           fail_on_review: "true"
           artifact_suffix: browser-unchanged
+          retention_days: "90"
 
       - name: Require unchanged PASS
         env:
@@ -52,11 +77,15 @@ jobs:
           SNAPSHOT_PATH: ${{ steps.unchanged.outputs.snapshot_path }}
           COMPARISON_PATH: ${{ steps.unchanged.outputs.comparison_path }}
           REPORT_PATH: ${{ steps.unchanged.outputs.report_path }}
+          MONITORING_EVENT_PATH: ${{ steps.unchanged.outputs.monitoring_event_path }}
+          ALERT_PATH: ${{ steps.unchanged.outputs.alert_path }}
+          REVIEW_PRIORITY: ${{ steps.unchanged.outputs.review_priority }}
+          EXPECTED_REVIEW_PRIORITY: NONE
           EXPECTED_PROVIDER: github-actions
           EXPECTED_REPOSITORY: ${{ github.repository }}
           EXPECTED_COMMIT_SHA: ${{ github.sha }}
           EXPECTED_ACTION_REPOSITORY: Muhammad-Zonain/checkout-release-passport
-          EXPECTED_ACTION_REF: 4cf7cf45a39bbdca6891be60b96a7590a8d61d31
+          EXPECTED_ACTION_REF: 5e4e634f443fd433b1dc1a7f6fba369fbe3e4f05
           EXPECTED_TARGET_ID: marketplace-consumer-proof
           EXPECTED_CAPTURE_MODE: browser
         run: |
@@ -65,6 +94,9 @@ jobs:
           test -f "$SNAPSHOT_PATH"
           test -f "$COMPARISON_PATH"
           test -f "$REPORT_PATH"
+          test -f "$MONITORING_EVENT_PATH"
+          test -f "$ALERT_PATH"
+          test "$REVIEW_PRIORITY" = "NONE"
 
           node scripts/verify-passport.mjs "$PASSPORT_PATH" PASS
 
@@ -74,7 +106,8 @@ jobs:
 
       - name: Controlled change must require review
         id: changed
-        uses: Muhammad-Zonain/checkout-release-passport@4cf7cf45a39bbdca6891be60b96a7590a8d61d31 # v0.3.1 candidate
+        # Unpublished v0.4.1 candidate; push this Action commit before running.
+        uses: Muhammad-Zonain/checkout-release-passport@5e4e634f443fd433b1dc1a7f6fba369fbe3e4f05
 
         with:
           operation: check
@@ -83,6 +116,7 @@ jobs:
           install_browser: "false"
           fail_on_review: "false"
           artifact_suffix: browser-controlled-change
+          retention_days: "90"
 
       - name: Require controlled-change REVIEW_REQUIRED
         env:
@@ -92,11 +126,15 @@ jobs:
           SNAPSHOT_PATH: ${{ steps.changed.outputs.snapshot_path }}
           COMPARISON_PATH: ${{ steps.changed.outputs.comparison_path }}
           REPORT_PATH: ${{ steps.changed.outputs.report_path }}
+          MONITORING_EVENT_PATH: ${{ steps.changed.outputs.monitoring_event_path }}
+          ALERT_PATH: ${{ steps.changed.outputs.alert_path }}
+          REVIEW_PRIORITY: ${{ steps.changed.outputs.review_priority }}
+          EXPECTED_REVIEW_PRIORITY: P2
           EXPECTED_PROVIDER: github-actions
           EXPECTED_REPOSITORY: ${{ github.repository }}
           EXPECTED_COMMIT_SHA: ${{ github.sha }}
           EXPECTED_ACTION_REPOSITORY: Muhammad-Zonain/checkout-release-passport
-          EXPECTED_ACTION_REF: 4cf7cf45a39bbdca6891be60b96a7590a8d61d31
+          EXPECTED_ACTION_REF: 5e4e634f443fd433b1dc1a7f6fba369fbe3e4f05
           EXPECTED_TARGET_ID: marketplace-consumer-proof
           EXPECTED_CAPTURE_MODE: browser
         run: |
@@ -105,6 +143,9 @@ jobs:
           test -f "$SNAPSHOT_PATH"
           test -f "$COMPARISON_PATH"
           test -f "$REPORT_PATH"
+          test -f "$MONITORING_EVENT_PATH"
+          test -f "$ALERT_PATH"
+          test "$REVIEW_PRIORITY" = "P2"
 
           node scripts/verify-passport.mjs "$PASSPORT_PATH" REVIEW_REQUIRED
 
@@ -124,6 +165,12 @@ jobs:
           if (comparison.summary.scripts_modified !== 1) {
             throw new Error(
               `Expected one modified script, received ${comparison.summary.scripts_modified}`
+            );
+          }
+
+          if (comparison.review?.priority !== "P2") {
+            throw new Error(
+              `Expected P2 review priority, received ${comparison.review?.priority}`
             );
           }
 
@@ -147,7 +194,8 @@ jobs:
 
       - name: Rollback must pass
         id: rollback
-        uses: Muhammad-Zonain/checkout-release-passport@4cf7cf45a39bbdca6891be60b96a7590a8d61d31 # v0.3.1 candidate
+        # Unpublished v0.4.1 candidate; push this Action commit before running.
+        uses: Muhammad-Zonain/checkout-release-passport@5e4e634f443fd433b1dc1a7f6fba369fbe3e4f05
 
         with:
           operation: check
@@ -156,6 +204,7 @@ jobs:
           install_browser: "false"
           fail_on_review: "true"
           artifact_suffix: browser-rollback
+          retention_days: "90"
 
       - name: Require rollback PASS
         env:
@@ -165,11 +214,15 @@ jobs:
           SNAPSHOT_PATH: ${{ steps.rollback.outputs.snapshot_path }}
           COMPARISON_PATH: ${{ steps.rollback.outputs.comparison_path }}
           REPORT_PATH: ${{ steps.rollback.outputs.report_path }}
+          MONITORING_EVENT_PATH: ${{ steps.rollback.outputs.monitoring_event_path }}
+          ALERT_PATH: ${{ steps.rollback.outputs.alert_path }}
+          REVIEW_PRIORITY: ${{ steps.rollback.outputs.review_priority }}
+          EXPECTED_REVIEW_PRIORITY: NONE
           EXPECTED_PROVIDER: github-actions
           EXPECTED_REPOSITORY: ${{ github.repository }}
           EXPECTED_COMMIT_SHA: ${{ github.sha }}
           EXPECTED_ACTION_REPOSITORY: Muhammad-Zonain/checkout-release-passport
-          EXPECTED_ACTION_REF: 4cf7cf45a39bbdca6891be60b96a7590a8d61d31
+          EXPECTED_ACTION_REF: 5e4e634f443fd433b1dc1a7f6fba369fbe3e4f05
           EXPECTED_TARGET_ID: marketplace-consumer-proof
           EXPECTED_CAPTURE_MODE: browser
         run: |
@@ -178,6 +231,9 @@ jobs:
           test -f "$SNAPSHOT_PATH"
           test -f "$COMPARISON_PATH"
           test -f "$REPORT_PATH"
+          test -f "$MONITORING_EVENT_PATH"
+          test -f "$ALERT_PATH"
+          test "$REVIEW_PRIORITY" = "NONE"
 
           node scripts/verify-passport.mjs "$PASSPORT_PATH" PASS
 
@@ -190,11 +246,11 @@ jobs:
           {
             echo "## Separate-Repository Browser Acceptance Demo"
             echo
-            echo "| State | Expected | Actual |"
-            echo "|---|---|---|"
-            echo "| Unchanged checkout | PASS | ${{ steps.unchanged.outputs.status }} |"
-            echo "| Controlled script change | REVIEW_REQUIRED | ${{ steps.changed.outputs.status }} |"
-            echo "| Rollback | PASS | ${{ steps.rollback.outputs.status }} |"
+            echo "| State | Expected | Actual | Priority |"
+            echo "|---|---|---|---|"
+            echo "| Unchanged checkout | PASS | ${{ steps.unchanged.outputs.status }} | ${{ steps.unchanged.outputs.review_priority }} |"
+            echo "| Controlled script change | REVIEW_REQUIRED | ${{ steps.changed.outputs.status }} | ${{ steps.changed.outputs.review_priority }} |"
+            echo "| Rollback | PASS | ${{ steps.rollback.outputs.status }} | ${{ steps.rollback.outputs.review_priority }} |"
             echo
             echo "This repository is maintained by the creator of Checkout Release Passport."
             echo

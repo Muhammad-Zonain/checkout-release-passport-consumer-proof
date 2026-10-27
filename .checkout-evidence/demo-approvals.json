@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "target_id": "marketplace-consumer-proof",
   "approvals": [
     {
@@ -11,7 +11,8 @@
       "purpose": "Demonstrate an approved payment SDK script",
       "approved_by": "Repository owner",
       "approved_at": "2026-08-01",
-      "expires_at": null
+      "expires_at": null,
+      "integrity_method": "observed-sha256"
     },
     {
       "approval_id": "proof-storefront",
@@ -22,7 +23,8 @@
       "purpose": "Demonstrate an approved storefront script",
       "approved_by": "Repository owner",
       "approved_at": "2026-08-01",
-      "expires_at": null
+      "expires_at": null,
+      "integrity_method": "observed-sha256"
     }
   ]
 }

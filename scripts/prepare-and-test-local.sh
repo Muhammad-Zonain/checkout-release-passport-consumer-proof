@@ -41,8 +41,12 @@ passport_path="$(sed -n 's/^passport_path=//p' "$temp_dir/check-output.txt")"
 snapshot_path="$(sed -n 's/^snapshot_path=//p' "$temp_dir/check-output.txt")"
 comparison_path="$(sed -n 's/^comparison_path=//p' "$temp_dir/check-output.txt")"
 report_path="$(sed -n 's/^report_path=//p' "$temp_dir/check-output.txt")"
+monitoring_event_path="$(sed -n 's/^monitoring_event_path=//p' "$temp_dir/check-output.txt")"
+alert_path="$(sed -n 's/^alert_path=//p' "$temp_dir/check-output.txt")"
+review_priority="$(sed -n 's/^review_priority=//p' "$temp_dir/check-output.txt")"
 
 test "$status" = "PASS"
+test "$review_priority" = "NONE"
 env \
   EXPECTED_PROVIDER=local \
   EXPECTED_TARGET_ID=marketplace-consumer-proof \
@@ -50,6 +54,9 @@ env \
   SNAPSHOT_PATH="$snapshot_path" \
   COMPARISON_PATH="$comparison_path" \
   REPORT_PATH="$report_path" \
+  MONITORING_EVENT_PATH="$monitoring_event_path" \
+  ALERT_PATH="$alert_path" \
+  EXPECTED_REVIEW_PRIORITY=NONE \
   node "$repo_root/scripts/verify-passport.mjs" "$passport_path"
 
-echo "Local consumer baseline and PASS proof created successfully."
+echo "Local consumer v0.4.1 baseline, PASS event, and alert proof created successfully."

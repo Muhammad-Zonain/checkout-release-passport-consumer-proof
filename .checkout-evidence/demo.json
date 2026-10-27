@@ -9,12 +9,24 @@
     "confirmed_by": "Repository owner",
     "confirmed_at": "2026-07-20",
     "scope_note": "Locally hosted fixture owned and controlled by this proof repository",
-    "reference": "PUBLIC-CONSUMER-PROOF-001"
+    "reference": "PUBLIC-CONSUMER-PROOF-001",
+    "allowed_navigation_origins": [
+      "http://127.0.0.1:4174"
+    ]
   },
   "scan": {
     "mode": "browser",
     "wait_until": "networkidle",
     "timeout_ms": 30000,
     "post_load_wait_ms": 250
+  },
+  "monitoring": {
+    "expected_interval_hours": 24,
+    "review_owner": "Consumer proof fixture owner",
+    "response_target_hours": 4
+  },
+  "capture_expectations": {
+    "expected_final_url": "http://127.0.0.1:4174/checkout.html",
+    "ready_element_id": "status"
   }
 }
