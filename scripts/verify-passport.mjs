@@ -82,6 +82,7 @@ const expectedActionRef = process.env.EXPECTED_ACTION_REF;
 const expectedTargetId = process.env.EXPECTED_TARGET_ID;
 const expectedCaptureMode = process.env.EXPECTED_CAPTURE_MODE;
 const expectedOutputDigest = process.env.PASSPORT_SHA256;
+const expectedReviewPriority = process.env.EXPECTED_REVIEW_PRIORITY ?? (expectedDecision === "PASS" ? "NONE" : null);
 
 if (expectedProvider) {
   requireValue(
@@ -145,13 +146,22 @@ if (expectedOutputDigest) {
 }
 
 requireValue(
-  passport.generator?.version === "0.3.0",
+  passport.generator?.version === "0.4.1",
   "Unexpected generator version",
 );
+
+if (expectedReviewPriority) {
+  requireValue(
+    passport.decision?.review_priority === expectedReviewPriority,
+    `Expected review priority ${expectedReviewPriority}, received ${passport.decision?.review_priority}`,
+  );
+}
 
 const snapshotPath = process.env.SNAPSHOT_PATH;
 const comparisonPath = process.env.COMPARISON_PATH;
 const reportPath = process.env.REPORT_PATH;
+const monitoringEventPath = process.env.MONITORING_EVENT_PATH;
+const alertPath = process.env.ALERT_PATH;
 
 if (snapshotPath) {
   const snapshot = JSON.parse(await readFile(snapshotPath, "utf8"));
@@ -176,6 +186,61 @@ if (snapshotPath) {
       "Unexpected snapshot capture mode",
     );
   }
+
+  requireValue(snapshot.page?.http_status === 200, "Fixture did not return HTTP 200");
+  requireValue(
+    snapshot.page?.final_url === "http://127.0.0.1:4174/checkout.html" &&
+    snapshot.page?.readiness?.expected_final_url === "http://127.0.0.1:4174/checkout.html",
+    "Fixture page identity was not verified",
+  );
+  requireValue(
+    snapshot.page?.readiness?.ready_element_id === "status" &&
+    snapshot.page?.readiness?.marker_check === "VISIBLE",
+    "Fixture readiness marker was not verified in the browser",
+  );
+}
+
+async function verifyDigestedArtifact(filePath, definition) {
+  const document = JSON.parse(await readFile(filePath, "utf8"));
+  const {
+    [definition.idField]: artifactId,
+    [definition.digestField]: artifactDigest,
+    ...artifactCore
+  } = document;
+  const actualArtifactDigest = digest(artifactCore);
+  requireValue(document.kind === definition.kind, `Unexpected ${definition.label} kind`);
+  requireValue(artifactDigest === actualArtifactDigest, `${definition.label} digest does not match its content`);
+  requireValue(artifactId === `${definition.prefix}${actualArtifactDigest.slice(0, 20)}`, `${definition.label} ID does not match its digest`);
+  return document;
+}
+
+if (monitoringEventPath) {
+  const event = await verifyDigestedArtifact(monitoringEventPath, {
+    label: "monitoring event",
+    kind: "checkout-monitoring-event",
+    idField: "event_id",
+    digestField: "event_sha256",
+    prefix: "cme_",
+  });
+  requireValue(event.decision?.status === expectedDecision, "Monitoring event decision mismatch");
+  requireValue(event.decision?.review_priority === expectedReviewPriority, "Monitoring event priority mismatch");
+  requireValue(event.evidence?.passport_id === passport.passport_id, "Monitoring event does not bind the passport");
+}
+
+if (alertPath) {
+  const alert = await verifyDigestedArtifact(alertPath, {
+    label: "review alert",
+    kind: "checkout-review-alert",
+    idField: "alert_id",
+    digestField: "alert_sha256",
+    prefix: "cra_",
+  });
+  requireValue(alert.decision === expectedDecision, "Review alert decision mismatch");
+  requireValue(alert.review_priority === expectedReviewPriority, "Review alert priority mismatch");
+  requireValue(
+    alert.action === (expectedDecision === "PASS" ? "resolve_if_open" : "open_or_update"),
+    "Unexpected review alert lifecycle action",
+  );
 }
 
 if (comparisonPath) {
@@ -207,6 +272,4 @@ if (reportPath) {
   );
 }
 
-console.log(
-  `Consumer passport content, evidence and ${expectedDecision} decision: VERIFIED`,
-);
+console.log(`Consumer passport, monitoring event, alert, evidence and ${expectedDecision} decision: VERIFIED`);

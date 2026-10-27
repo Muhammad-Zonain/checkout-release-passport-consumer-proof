@@ -1,63 +1,63 @@
- # Checkout Release Passport — Separate-Repository Browser Acceptance Demo
+# Checkout Release Passport — Creator-Maintained Consumer Proof
 
 [![Separate-repository browser acceptance demo](https://github.com/Muhammad-Zonain/checkout-release-passport-consumer-proof/actions/workflows/consumer-proof.yml/badge.svg)](https://github.com/Muhammad-Zonain/checkout-release-passport-consumer-proof/actions/workflows/consumer-proof.yml)
 
-[Product Website](https://checkout.transferverity.com)
+[Product website](https://checkout.transferverity.com) ·
+[Main repository](https://github.com/Muhammad-Zonain/checkout-release-passport) ·
+[GitHub Marketplace](https://github.com/marketplace/actions/checkout-release-passport)
 
-This repository is maintained by the creator of Checkout Release Passport.
+This repository is maintained by the creator of Checkout Release Passport. It is a deterministic product fixture, not independent customer evidence.
 
-It demonstrates that a separate caller repository can run the published
-Checkout Release Passport v0.3.1 Action in browser capture mode.
+## v0.4.1 publication status
 
-## Verified acceptance sequence
+The workflow is prepared to test the unpublished v0.4.1 candidate at the immutable Action commit `5e4e634f443fd433b1dc1a7f6fba369fbe3e4f05`. This commit must be pushed to the main Action repository before GitHub can resolve it.
 
-The repository-owned checkout fixture is tested in three controlled states:
+1. Push the Action candidate and require its product-proof, CodeQL and dependency-review checks.
+2. Run this consumer pull request's complete browser acceptance workflow at the pinned candidate SHA.
+3. Publish only the reviewed revision after both repositories' required checks pass. If the release commit differs, update every Action and expected-provenance SHA here and rerun.
+4. Verify the published release's release-integrity artifacts before describing it as a verified release.
 
-- Unchanged checkout → `PASS`
-- Harmless controlled script change → `REVIEW_REQUIRED`
-- Restored checkout → `PASS`
+Local verification is not a GitHub Actions run. The live website and historical v0.3.1 evidence are preserved; this branch does not claim that v0.4.1 has been published.
 
-The workflow verifies that every generated passport reports browser capture
-mode and checks the caller repository, Action provenance, expected decision,
-and canonical passport digest.
+## Acceptance sequence
 
-## Immutable Action reference
+The repository-owned checkout fixture is exercised in three controlled states:
 
-```yaml
-uses: Muhammad-Zonain/checkout-release-passport@4cf7cf45a39bbdca6891be60b96a7590a8d61d31 # v0.3.1
+```text
+unchanged checkout       -> PASS / NONE
+harmless script change   -> REVIEW_REQUIRED / P2
+restored checkout        -> PASS / NONE
 ```
 
-## Preserved browser acceptance evidence
+The workflow verifies:
 
-[View the preserved evidence release](https://github.com/Muhammad-Zonain/checkout-release-passport-consumer-proof/releases/tag/browser-acceptance-2026-08-03)
+- browser capture mode;
+- successful expected checkout page and visible `status` marker;
+- caller repository and commit provenance;
+- Action repository and immutable revision;
+- expected decision and review priority;
+- passport, snapshot, comparison, HTML report, monitoring event, and alert payload; and
+- canonical content digests.
 
-Source workflow run:
-[30810163186](https://github.com/Muhammad-Zonain/checkout-release-passport-consumer-proof/actions/runs/30810163186)
+For deterministic testing, the workflow creates a fresh baseline for its own harmless fixture. Production baselines must instead be reviewed and committed separately.
 
-The run produces separate evidence artifacts for:
+## Preserved earlier evidence
 
-- Unchanged checkout
-- Controlled script change
-- Rollback
+[View the creator-maintained browser acceptance evidence release](https://github.com/Muhammad-Zonain/checkout-release-passport-consumer-proof/releases/tag/browser-acceptance-2026-08-03).
 
-Each artifact contains the release passport, comparison, snapshot, and
-readable HTML report.
+That preserved release predates v0.4.1. It remains historical evidence of the earlier cross-repository sequence and must not be described as v0.4.1 proof.
 
-## Scope
+## Safety boundary
 
-The fixture is harmless and repository-owned. It does not submit a checkout
-form, collect payment data, attempt authentication, or inspect a third-party
-checkout.
+The fixture is local, harmless, and repository-owned. It does not submit a checkout form, collect payment data, authenticate to another system, or inspect a third-party checkout.
 
-## Disclosure
+This repository is not:
 
-This repository is maintained by the creator of Checkout Release Passport.
+- an independent audit or external customer validation;
+- certification, a PCI DSS assessment, or a QSA opinion;
+- a vendor adapter or vendor endorsement;
+- production security evidence;
+- complete attack prevention, attack blocking, or real-user-session monitoring; or
+- proof that a paid partner or customer exists.
 
-It demonstrates cross-repository installation and a browser-mode fixture
-acceptance sequence.
-
-It is not an independent audit, external customer validation, certification,
-PCI DSS assessment, or third-party endorsement.
-
-It does not demonstrate production security, complete attack prevention, or
-continuous production monitoring.
+The separate functional practice in the main Action repository clicks an owned cart and verifies its total. This consumer workflow remains a script/header evidence test, not a real payment or order-processing test.
